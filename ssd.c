@@ -19,15 +19,13 @@ MySSD MySSD_init(char* name, int pageSize, int blockSize, int blockAmt)
     FILE* file;
     char path[100] = "files/";
     strcat(path, ssd.name);
-    strcat(path, ".txt");
+    //strcat(path, ".txt");
     file = fopen(path, "w");
     if (file == NULL)
     {
         printf("Cannot open file!\n");
         exit(1);
     }
-    //fputs("SSD name :\n", file);
-    //fputs("64,64,8\n", file);
     fprintf(file, "SSD name: %s\n", ssd.name);
     fprintf(file, "%d, %d, %d;\n", ssd.pageSize, ssd.blockSize, ssd.blockAmt);
     fclose(file);
@@ -42,7 +40,6 @@ void MySSDinit(struct MySSD ssd)
     strcat(path, ssd.name);
     strcat(path, ".txt");
     file = fopen(path, "w");
-    //fputs("SSD name :\n", file);
     fprintf(file, "SSD name: %s\n", ssd.name);
     fprintf(file, "%d, %d, %d;\n", ssd.pageSize, ssd.blockSize, ssd.blockAmt);
     fclose(file);
