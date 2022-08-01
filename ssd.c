@@ -29,7 +29,7 @@ MySSD MySSD_init(char* name, int pageSize, int blockSize, int blockAmt)
     fprintf(file, "SSD name: %s\n", ssd.name);
     fprintf(file, "%d, %d, %d;\n", ssd.pageSize, ssd.blockSize, ssd.blockAmt);
     fclose(file);
-    printf("I'm done!\n");
+    //printf("I'm done!\n");
     return ssd;
 }
 
