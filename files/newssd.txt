@@ -1,2 +1,0 @@
-SSD name: newssd
-64, 64, 8;
