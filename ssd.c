@@ -5,57 +5,80 @@
 
 #include "ssd.h"
 
-MySSD MySSD_init(char*, int, int, int);
-
-void MySSDinit(struct MySSD);
-
-MySSD MySSD_init(char* name, int pageSize, int blockSize, int blockAmt)
+MySSD* MySSD_init(char* name, int pageSize, int blockSize, int blockAmt)
 {
-    MySSD ssd;
-    strcpy(ssd.name, name);
-    ssd.pageSize = pageSize;
-    ssd.blockSize = blockSize;
-    ssd.blockAmt = blockAmt;
+    MySSD pssd;
+    MySSD* ssd = &pssd;
+    strcpy(ssd->name, name);
+    ssd->pageSize = pageSize;
+    ssd->blockSize = blockSize;
+    ssd->blockAmt = blockAmt;
     FILE* file;
     char path[100] = "files/";
-    strcat(path, ssd.name);
+    strcat(path, ssd->name);
     //strcat(path, ".txt");
-    file = fopen(path, "w");
+    strcpy(ssd->name, path);
+    file = fopen(ssd->name, "wb");
     if (file == NULL)
     {
         printf("Cannot open file!\n");
         exit(1);
     }
-    fprintf(file, "SSD name: %s\n", ssd.name);
-    fprintf(file, "%d, %d, %d;\n", ssd.pageSize, ssd.blockSize, ssd.blockAmt);
+    int totalSize = ssd->pageSize * ssd->blockSize * ssd->blockAmt;
+    //char fill[totalSize];
+    char* fill;
+    fill = malloc(totalSize * sizeof(char));
+    memset(fill, '0', totalSize);
+    fprintf(file, "%s", fill);
     fclose(file);
-    //printf("I'm done!\n");
+    printf("I'm done!\n");
     return ssd;
 }
 
-void MySSDinit(struct MySSD ssd)
+void SSDWritePage(MySSD* ssd, char* buf, int pageNum, int size)
 {
     FILE* file;
-    char path[100] = "/files/";
-    strcat(path, ssd.name);
-    strcat(path, ".txt");
-    file = fopen(path, "w");
-    fprintf(file, "SSD name: %s\n", ssd.name);
-    fprintf(file, "%d, %d, %d;\n", ssd.pageSize, ssd.blockSize, ssd.blockAmt);
+    file = fopen(ssd->name, "ab");
+    fseek(file, pageNum * ssd->pageSize, SEEK_SET);
+    for (int i = 0; i < size; i++)
+    {
+        putc(*buf++, file);
+        fflush(file);
+    }
     fclose(file);
-    return;
 }
 
-/* Ñ„ÑƒÐ½ÐºÑ†Ð¸Ñ Ð±Ð°Ð»Ð°Ð½ÑÐ¸Ñ€Ð¾Ð²Ð°Ð½Ð¸Ñ Ð·Ð°Ð¿Ð¸ÑÐ¸ - Ñ†Ð¸ÐºÐ»Ð¸Ñ‡ÐµÑÐºÐ°Ñ Ð·Ð°Ð¿Ð¸ÑÑŒ; Ð¿Ñ€Ð¸ Ð¿ÐµÑ€ÐµÐ·Ð°Ð¿Ð¸ÑÐ¸
- * Ð±Ð»Ð¾ÐºÐ° - Ð²Ñ‹Ð±Ð¾Ñ€ Ð±Ð»Ð¾ÐºÐ° Ñ Ð½Ð°Ð¸Ð¼ÐµÐ½ÑŒÑˆÐ¸Ð¼ Ð¸Ð·Ð½Ð¾ÑÐ¾Ð¼
+char* SSDReadPage(MySSD* ssd, char* buf, int pageNum, int size)
+{
+    FILE* file;
+    file = fopen(ssd->name, "rb");
+    fseek(file, pageNum * ssd->pageSize, SEEK_SET);
+    for (int i = 0; i < size; i++)
+    {
+        *buf = i;
+        buf++;
+    }
+    fclose(file);
+}
+
+void SSDWipeBlock(int BlockNum)
+{
+
+}
+
+void SSDDestructor(MySSD* myssd)
+{
+    free(myssd);
+}
+
+/* ôóíêöèÿ áàëàíñèðîâàíèÿ çàïèñè - öèêëè÷åñêàÿ çàïèñü
  *
- * Ð²Ð¸Ð´ Ñ„Ð°Ð¹Ð»Ð° - "Ñ€Ð°Ð·Ð¼ÐµÑ‚ÐºÐ°" Ð³Ñ€Ð°Ð½Ð¸Ñ† ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ† Ð¸ Ð±Ð»Ð¾ÐºÐ¾Ð² Ñ ÑƒÐºÐ°Ð·Ð°Ð½Ð¸ÐµÐ¼ Ð¸Ð·Ð½Ð¾ÑÐ°
- * ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ†
+ * âèä ôàéëà - "ðàçìåòêà" íóëÿìè
  *
- * Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ð° Ñ€Ð°Ð·Ð¼ÐµÑ‰ÐµÐ½Ð¸Ñ Ñ„Ð°Ð¹Ð»-ÐºÐ»ÑŽÑ‡-Ð·Ð°Ð½Ð¸Ð¼Ð°ÐµÐ¼Ñ‹Ðµ Ñ„Ð¸Ð·Ð¸Ñ‡ÐµÑÐºÐ¸ ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ†Ñ‹
+ * òàáëèöà ðàçìåùåíèÿ ôàéë-êëþ÷-çàíèìàåìûå ôèçè÷åñêè ñòðàíèöû
  *
- * Ñ„ÑƒÐ½ÐºÑ†Ð¸Ñ "Ð¿Ñ€Ð¾Ð¸Ð·Ð¾ÑˆÐµÐ» Ð¿ÐµÑ€ÐµÐ±Ð¾Ð¹ Ð¿Ð¸Ñ‚Ð°Ð½Ð¸Ñ" -
- * Ð¿Ñ€Ð¾Ð¸Ð·Ð¾ÑˆÐµÐ»_Ð¿ÐµÑ€ÐµÐ±Ð¾Ð¹=rand();
- * Ð¿Ð¾Ð·Ð¸Ñ†Ð¸Ñ_Ð¿ÐµÑ€ÐµÐ±Ð¾Ñ=rand();
- * Ð²Ñ‹ÑÑ‚Ð°Ð²Ð¸Ñ‚ÑŒ ÑÐ¸Ð¼Ð²Ð¾Ð» Ð¿ÐµÑ€ÐµÐ±Ð¾Ñ/ÑƒÐ´Ð°Ð»Ð¸Ñ‚ÑŒ ÑÐ¸Ð¼Ð²Ð¾Ð»Ñ‹ Ð¿Ð¾ÑÐ»Ðµ Ð¿Ð¾Ð·Ð¸Ñ†Ð¸Ð¸ Ð¿ÐµÑ€ÐµÐ±Ð¾Ñ
+ * ôóíêöèÿ "ïðîèçîøåë ïåðåáîé ïèòàíèÿ" -
+ * ïðîèçîøåë_ïåðåáîé=rand();
+ * ïîçèöèÿ_ïåðåáîÿ=rand();
+ * âûñòàâèòü ñèìâîë ïåðåáîÿ/óäàëèòü ñèìâîëû ïîñëå ïîçèöèè ïåðåáîÿ
  */
