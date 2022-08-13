@@ -1,0 +1,2 @@
+upload C:\Users\foxol\source\repos\Project1 here
+duplicate files to base folder as well
