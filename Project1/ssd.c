@@ -5,10 +5,17 @@
 
 #include "ssd.h"
 
-ssd* MySSD_init(char* name, int pageSize, int blockSize, int blockAmt)
+typedef struct SSDSimulator
 {
-    ssd pssd;
-    ssd* ssd = &pssd;
+    char name[80];
+    int pageSize;
+    int blockSize;
+    int blockAmt;
+} ssd;
+
+ssd* MySSD_init(char* name, int pageSize, int blockSize, int blockAmt)//Most of this is mock-up/TODO for now
+{
+    ssd* ssd = malloc(sizeof(ssd));
     strcpy(ssd->name, name);
     ssd->pageSize = pageSize;
     ssd->blockSize = blockSize;
@@ -64,12 +71,23 @@ char* SSDReadPage(ssd* ssd, char* buf, int pageNum, int size)
 
 void SSDWipeBlock(int BlockNum)
 {
-
+    //
 }
 
-void SSDDestructor(ssd* ssd)
+void SSDDeinit(ssd** ssd)
 {
-    free(ssd);
+    free(*ssd);
+    *ssd = NULL;
+}
+
+void SSDWrite(void* buf, int len)
+{
+    //
+}
+
+void SSDRead(void *buf)
+{
+    //
 }
 
 /* функция балансирования записи - циклическая запись

@@ -1,17 +1,11 @@
-typedef struct SSDSimulator
-{
-    char name[80];
-    int pageSize;
-    int blockSize;
-    int blockAmt;
-} ssd;
+typedef struct SSDSimulator ssd;
 
-ssd* MySSD_init(char*, int, int, int);
+ssd* MySSD_init(char*, int, int, int);//Most of this is mock-up/TODO for now
 
 void SSDWritePage(ssd*, char*, int, int);
-
 char* SSDReadPage(ssd*, char*, int, int);
-
 void SSDWipeBlock(int);
+void SSDDeinit(ssd** ssd);
 
-void SSDDestructor(ssd*);
+void SSDWrite(void* buf, int len);
+void SSDRead(void* buf);
