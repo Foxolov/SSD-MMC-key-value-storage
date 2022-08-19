@@ -140,10 +140,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="keyval.h" />
+    <ClInclude Include="list.h" />
     <ClInclude Include="ssd.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="keyval.c" />
+    <ClCompile Include="list.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="ssd.c" />
   </ItemGroup>

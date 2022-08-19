@@ -7,176 +7,26 @@
 #include "keyval.h"
 //#include "ssd.h"
 
-#define STRING_LENGTH 64
-#define PAGE_SIZE 256
-#define PAGE_COUNT 64
-#define BLOCK_COUNT 8
-
-struct _ListNode
-{
-    char key[STRING_LENGTH];
-    char value[STRING_LENGTH];
-    struct ListNode* next;
-};
 struct _ArrayEntry
 {
     char key[STRING_LENGTH];
     char value[STRING_LENGTH];
 };
-struct _KeyValueStorage//rework
-{
-    ssd* ssd;
-    //int currPage;
-    node* head;
-    //StringObj* table[64 * 8];//here be list
-    //int curri;
-    //int pageSize;
-    //int blockSize;
-    //int blockAmt;
-    //char buf[64*64*8];
-};
-
-void printList(node* head)
-{
-    while (head != NULL) {
-        printf("Key: %s\nValue: %s\n\n", head->key, head->value);
-        head = head->next;
-    }
-}
-int lenList(node* head)
-{
-    int len = 0;
-    node* current = head;
-    while (current != NULL)
-    {
-        len++;
-        current = current->next;
-    }
-    return len;
-}
-
-void push(node** head, char* key, char* value)
-{
-    node* newnode = (node*)malloc(sizeof(node));
-    strcpy(newnode->key, key);
-    strcpy(newnode->value, value);
-    newnode->next = (*head);
-    (*head) = newnode;
-}
-void append(node** head, char* key, char* value)
-{
-    node* newnode = (node*)malloc(sizeof(node));
-    node* last = *head;
-    strcpy(newnode->key, key);
-    strcpy(newnode->value, value);
-    newnode->next = NULL;
-
-    if (*head == NULL)
-    {
-        *head = newnode;
-        return;
-    }
-
-    while (last->next != NULL)
-    {
-        last = last->next;
-    }
-    last->next = newnode;
-    return;
-}
-
-void pop(node** head)
-{
-    node* temp = *head;
-    *head = (*head)->next;
-    free(temp);
-}
-void delLast(node** head)
-{
-    node* last = *head;
-    node* prev = NULL;
-    while (last->next != NULL)
-    {
-        prev = last;
-        last = last->next;
-    }
-    prev->next = NULL;
-    free(last);
-}
-void delKey(node** head, char* key)
-{
-    node* temp = *head, * prev = NULL;
-    if (temp != NULL && !strcmp(temp->key, key)) {
-        *head = temp->next;
-        free(temp);
-        return;
-    }
-
-    while (temp != NULL && strcmp(temp->key, key)) {
-        prev = temp;
-        temp = temp->next;
-    }
-    if (temp == NULL)
-    {
-        return;
-    }
-    prev->next = temp->next;
-    free(temp);
-}
-
-node* getByPos(node* head, int pos)
-{
-    return NULL;//TODO: is it needed? we only probably will need getbykey, pos is relative to push/append
-}
-node* getByKey(node* head, char* key)
-{
-    node* temp = head;
-    while (temp != NULL && strcmp(temp->key, key))
-    {
-        temp = temp->next;
-    }
-    return temp;
-}
-node* getNext(node* head)
-{
-    if (head->next != NULL)
-    {
-        return head->next;
-    }
-    else
-    {
-        return NULL;
-    }
-}
-
-void changeByPos(node* head, int pos, char* value)
-{
-    return NULL;//TODO: is it needed? we only probably will need getbykey, pos is relative to push/append
-}
-void changeByKey(node* head, char* key, char* value)
-{
-    node* temp = getByKey(head, key);
-    strcpy(temp->value, value);
-}
-
-void freeList(node** head)
-{
-    if ((*head)->next != NULL)
-    {
-        freeList(&(*head)->next);
-    }
-    free(*head);
-    *head = NULL;
-}
 
 
 keyval* KeyValInit()
 {
     keyval* kv = malloc(sizeof(keyval));
-    kv->ssd = MySSD_init("ssd1", PAGE_SIZE, PAGE_COUNT, BLOCK_COUNT);
+    kv->ssd = SSDInit("ssd1");
     kv->head = NULL;
     ReadFromSSD(kv);
     return kv;//создаются объекты, выделяется память, читаем из файла, восстановл всего, что на диске
+}
+bool KeyValClear(keyval* kv)
+{
+    SSDClear(SSDGetPath(kv->ssd));
+    freeList(&(kv->head));
+    return true;
 }
 bool KeyValDeinit(keyval** kv)
 {
@@ -190,20 +40,36 @@ bool KeyValDeinit(keyval** kv)
 
 bool WriteString(keyval* kv, char* key, char* value)
 {
+    if (checkKey(kv->head, key))
+    {
+        return false;
+    }
     append(&(kv->head), key, value);
     return true;
 }
 bool ClearValue(keyval* kv, char* key)
 {
+    if (!checkKey(kv->head, key))
+    {
+        return false;
+    }
     delKey(&(kv->head), key);
     return true;
 }
 char* ReadString(keyval* kv, char* key)
 {
+    if (!checkKey(kv->head, key))
+    {
+        return NULL;
+    }
     return getByKey(kv->head, key)->value;
 }
 bool ModifyValue(keyval* kv, char* key, char* value)
 {
+    if (!checkKey(kv->head, key))
+    {
+        return false;
+    }
     changeByKey(kv->head, key, value);
     return true;
 }
@@ -220,13 +86,13 @@ void WriteToSSD(keyval* kv)
         strcpy(arr[i].value, listWalk->value);
         listWalk = listWalk->next;
     }
-    SSDWrite(arr, listSize);
+    SSDWrite(kv->ssd, arr, listSize);
     free(arr);
 }
 void ReadFromSSD(keyval* kv)
 {
-    entry* arr = (entry*)malloc(PAGE_SIZE * PAGE_COUNT * BLOCK_COUNT);
-    SSDRead(arr);
+    entry* arr = malloc(64);// = (entry*)malloc(PAGE_SIZE * PAGE_COUNT * BLOCK_COUNT);
+    SSDRead(kv->ssd, arr);
     int i = 0;
     while (strcmp(arr[i].key, ""))
     {

@@ -1,11 +1,15 @@
 typedef struct SSDSimulator ssd;
 
-ssd* MySSD_init(char*, int, int, int);//Most of this is mock-up/TODO for now
+ssd* SSDInit(char* name);//Most of this is mock-up/TODO for now
+void SSDClear(char* name);
+void SSDDeinit(ssd** ssd);
+
+crc GenerateCRC(uint8_t const message[], int nBytes);
 
 void SSDWritePage(ssd*, char*, int, int);
 char* SSDReadPage(ssd*, char*, int, int);
 void SSDWipeBlock(int);
-void SSDDeinit(ssd** ssd);
+char* SSDGetPath(ssd* ssd);
 
-void SSDWrite(void* buf, int len);
-void SSDRead(void* buf);
+void SSDWrite(ssd* ssd, void* buf, int len);
+void SSDRead(ssd* ssd, void* buf);

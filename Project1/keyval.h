@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include "ssd.h"//create and add list lib NO!, list will be here
+#include "ssd.h"
+#include "list.h"
 
 typedef struct StringObj //obsolete
 {
@@ -10,41 +11,23 @@ typedef struct StringObj //obsolete
     int pos;
 } StringObj;
 
-typedef struct _ListNode node;
 typedef struct _ArrayEntry entry;
-typedef struct _KeyValueStorage keyval;
-
-
-//All this must be static to prevent external access?----------------------------------------------
-//misc functions
-void printList(node* head);
-int lenList(node* head);
-
-//adders
-void push(node** head, char* key, char* value);
-void append(node** head, char* key, char* value);
-
-//deleters
-void pop(node** head);
-void delLast(node** head);
-void delKey(node** head, char* key);
-
-//getters
-node* getByPos(node* head, int pos);
-node* getByKey(node* head, char* key);
-node* getNext(node* head);
-
-//modifiers
-void changeByPos(node* head, int pos, char* value);
-void changeByKey(node* head, char* key, char* value);
-
-//free memory
-void freeList(node** head);
-//All this must be static to prevent external access?----------------------------------------------
-
+typedef struct _KeyValueStorage//rework
+{
+    ssd* ssd;
+    //int currPage;
+    node* head;
+    //StringObj* table[64 * 8];//here be list
+    //int curri;
+    //int pageSize;
+    //int blockSize;
+    //int blockAmt;
+    //char buf[64*64*8];
+} keyval;
 
 //init/deinit
 keyval* KeyValInit();//needs load from file
+bool KeyValClear(keyval* kv);
 bool KeyValDeinit(keyval** kv);//needs write to file
 
 //interact with user (and ssd simulator)
