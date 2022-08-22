@@ -86,18 +86,21 @@ void WriteToSSD(keyval* kv)
         strcpy(arr[i].value, listWalk->value);
         listWalk = listWalk->next;
     }
-    SSDWrite(kv->ssd, arr, listSize);
+    SSDWrite(kv->ssd, arr, sizeof(entry) * listSize);
     free(arr);
 }
+
 void ReadFromSSD(keyval* kv)
 {
-    entry* arr = malloc(64);// = (entry*)malloc(PAGE_SIZE * PAGE_COUNT * BLOCK_COUNT);
-    SSDRead(kv->ssd, arr);
-    int i = 0;
-    while (strcmp(arr[i].key, ""))
+    unsigned size = 0;
+    entry* arr = (entry*)SSDRead(kv->ssd, &size);// = (entry*)malloc(PAGE_SIZE * PAGE_COUNT * BLOCK_COUNT);
+
+    if (arr == NULL || size == 0)
+        return;
+
+    for (size_t i = 0; i < size / sizeof(entry); i++)
     {
-        append(&(kv->head), arr[i].key, arr[i].value);
-        i++;
+        append(&(kv->head), (arr + i)->key, (arr + i)->value);
     }
     free(arr);
 }

@@ -8,7 +8,7 @@
 int main()
 {
     keyval* kv = KeyValInit();
-    KeyValClear(kv);
+    //KeyValClear(kv);
     WriteString(kv, "a", "123");
     if (WriteString(kv, "a", "456"))
     {

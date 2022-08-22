@@ -2,19 +2,21 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <cstdint>
+
+// #include <unistd.h>
+
+
+//#include <cstdint>
 
 #include "ssd.h"
 
-#define POLYNOMIAL 0xD8
-#define WIDTH  (8 * sizeof(crc))
-#define TOPBIT (1 << (WIDTH - 1))
+//#define POLYNOMIAL 0xD8
+//#define WIDTH  (8 * sizeof(crc))
+//#define TOPBIT (1 << (WIDTH - 1))
 
 #define PAGE_SIZE 256
 #define PAGE_COUNT 64
 #define BLOCK_COUNT 8
-
-typedef uint8_t crc;
 
 typedef struct SSDSimulator
 {
@@ -24,18 +26,27 @@ typedef struct SSDSimulator
     int blockAmt;
 } ssd;
 
+typedef struct _Example
+{
+	int size;
+	int block;
+	int amt;
+} Example;
+
+//typedef struct _Example Example;
+
 ssd* SSDInit(char* name)//Most of this is mock-up/TODO for now
 {
-    ssd* ssd = malloc(sizeof(ssd));
-    strcpy(ssd->filePath, name);
-    ssd->pageSize = PAGE_SIZE;
-    ssd->blockSize = PAGE_COUNT;
-    ssd->blockAmt = BLOCK_COUNT;
+    ssd* pSSD = malloc(sizeof(ssd));
+    strcpy(pSSD->filePath, name);
+    pSSD->pageSize = PAGE_SIZE;
+    pSSD->blockSize = PAGE_COUNT;
+    pSSD->blockAmt = BLOCK_COUNT;
     //FILE* file;
     char path[100] = "files/";
-    strcat(path, ssd->filePath);
-    strcpy(ssd->filePath, path);
-    return ssd;
+    strcat(path, pSSD->filePath);
+    strcpy(pSSD->filePath, path);
+    return pSSD;
 }
 void SSDClear(char* name)//needs to take ssd, but error here
 {
@@ -55,15 +66,16 @@ void SSDClear(char* name)//needs to take ssd, but error here
     fclose(file);
     free(fill);
 }
-void SSDDeinit(ssd** ssd)
-{
-    free(*ssd);
-    *ssd = NULL;
-}
 
-crc GenerateCRC(uint8_t const message[], int nBytes)
+void SSDDeinit(ssd** ppSSD)
 {
-    crc  remainder = 0;
+    free(*ppSSD);
+    *ppSSD = NULL;
+}
+/*
+uint8_t GenerateCRC(uint8_t const message[], int nBytes)
+{
+    uint8_t  remainder = 0;
     for (int byte = 0; byte < nBytes; ++byte)
     {
         remainder ^= (message[byte] << (WIDTH - 8));
@@ -82,7 +94,7 @@ crc GenerateCRC(uint8_t const message[], int nBytes)
 
     return (remainder);
 }
-
+*/
 void SSDWritePage(ssd* ssd, char* buf, int pageNum, int size)
 {
     FILE* file;
@@ -107,6 +119,8 @@ char* SSDReadPage(ssd* ssd, char* buf, int pageNum, int size)
         buf++;
     }
     fclose(file);
+
+    return NULL;
 }
 
 void SSDWipeBlock(int BlockNum)
@@ -119,30 +133,61 @@ char* SSDGetPath(ssd* ssd)
     return ssd->filePath;
 }
 
-void SSDWrite(ssd* ssd, void* buf, int len)
+size_t SSDWrite(ssd* pSSD, void* buf, unsigned size)
 {
-    FILE* file;
-    file = fopen(ssd->filePath, "wb");
-    write(file, buf, len);
-    fclose(file);
+	if (pSSD == NULL)
+	{
+		printf("NULL pointer passed\n");
+		return 0;
+	}
+	
+    if ((buf == NULL) || (size == 0))
+	{
+		printf("No data to write\n");
+		return 0;
+	}
+
+
+	FILE* file;
+	file = fopen(pSSD->filePath, "wb");
+	if (file == NULL)
+	{
+		printf("Cannot open file!\n");
+		return 0;
+	}
+
+	size_t result = fwrite(buf, sizeof(char), size, file);
+	fclose(file);
+    return result;
 }
 
-void SSDRead(ssd* ssd, void *buf)
+void* SSDRead(ssd* pSSD, unsigned* size)
 {
     FILE* file;
-    file = fopen(ssd->filePath, "rb");
-    if (file == NULL)
-    {
-        printf("Cannot open file!\n");
-        exit(1);
-    }
-    int len = PAGE_SIZE * PAGE_COUNT * BLOCK_COUNT;
-    buf = malloc(len + 1);
-    memset(buf, '0', len + 1);//
-    read(file, buf, len);//error here
-    printf("We're done writing!");
-    fclose(file);
-    //
+	file = fopen(pSSD->filePath, "rb");
+	if (file == NULL)
+	{
+		printf("Cannot open file!\n");
+		return NULL;
+	}
+
+	fseek(file, 0, SEEK_END);
+	unsigned fileSize = ftell(file);
+	fseek(file, 0, SEEK_SET);
+
+	char* buffer = malloc(fileSize);
+	if (buffer == NULL)
+	{
+		printf("Cannot allocate memory!\n");
+		return NULL;
+	}
+	memset(buffer, 0, fileSize);
+
+	fread(buffer, fileSize, sizeof(char), file);
+	fclose(file);
+    
+    *size = fileSize;
+    return buffer;
 }
 
 /* функция балансирования записи - циклическая запись

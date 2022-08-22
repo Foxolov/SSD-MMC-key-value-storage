@@ -1,9 +1,12 @@
+#ifndef __LIST_FOR_KEYVAL_SSD__
+#define __LIST_FOR_KEYVAL_SSD__
+
 #include <stdlib.h>
 #include <stdbool.h>
 
 #define STRING_LENGTH 64
 
-typedef struct _ListNode
+typedef struct ListNode
 {
     char key[STRING_LENGTH];
     char value[STRING_LENGTH];
@@ -37,3 +40,5 @@ void changeByKey(node* head, char* key, char* value);
 //free memory
 void freeList(node** head);
 //All this must be static to prevent external access?----------------------------------------------
+
+#endif

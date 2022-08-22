@@ -1,3 +1,6 @@
+#ifndef __KEYVAL_LIB_SSD__
+#define __KEYVAL_LIB_SSD__
+
 #include <stdlib.h>
 #include <stdbool.h>
 
@@ -11,7 +14,9 @@ typedef struct StringObj //obsolete
     int pos;
 } StringObj;
 
+
 typedef struct _ArrayEntry entry;
+
 typedef struct _KeyValueStorage//rework
 {
     ssd* ssd;
@@ -39,3 +44,5 @@ bool ModifyValue(keyval* kv, char* key, char* value);
 //interact with ssd simulator (create array for list interaction)
 void WriteToSSD(keyval* kv);
 void ReadFromSSD(keyval* kv);
+
+#endif

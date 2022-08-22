@@ -143,7 +143,8 @@ bool checkKey(node* head, char* key)
 
 void changeByPos(node* head, int pos, char* value)
 {
-    return NULL;//TODO: is it needed? we only probably will need getbykey, pos is relative to push/append
+    // TODO: is it needed? we only probably will need getbykey, pos is relative to push/append
+    // return NULL;
 }
 void changeByKey(node* head, char* key, char* value)
 {
